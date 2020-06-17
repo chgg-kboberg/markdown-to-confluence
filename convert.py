@@ -45,13 +45,14 @@ def convtoconf(markdown, front_matter={},no_toc=False):
     return page_html, renderer.attachments
 
 
-class ConfluenceRenderer(mistune.Renderer,no_toc=False):
-    def __init__(self, authors=[]):
+class ConfluenceRenderer(mistune.Renderer):
+    def __init__(self, authors=[],no_toc=False):
         self.attachments = []
         if authors is None:
             authors = []
         self.authors = authors
         self.has_toc = False
+        self.no_toc = no_toc
         super().__init__()
 
     def layout(self, content):
