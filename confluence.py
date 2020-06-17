@@ -126,7 +126,7 @@ class Confluence():
                                         params=params,
                                         data=data,
                                         files=files))
-                print("attempt {} failed:".format(i+1))
+                print("attempt {} failed:".format(attempt+1))
                 print(response.content)
                 time.sleep(2 * attempt)
             else:
