@@ -2,6 +2,7 @@ import logging
 import json
 import requests
 import os
+import time
 
 from urllib.parse import urljoin
 
@@ -105,30 +106,37 @@ class Confluence():
                                      files=files))
             if method != 'GET':
                 return {}
+        #Confluence will return intermittent 409s if you are publishing large quantities of markdown
+        for attempt in range(5):
+            response = self._session.request(method=method,
+                                            url=url,
+                                            params=params,
+                                            json=data,
+                                            headers=headers,
+                                            files=files)
 
-        response = self._session.request(method=method,
-                                         url=url,
-                                         params=params,
-                                         json=data,
-                                         headers=headers,
-                                         files=files)
-
+            if not response.ok:
+                log.info('''{method} {url}: {status_code} {reason}
+                Params: {params}
+                Data: {data}
+                Files: {files}'''.format(method=method,
+                                        url=url,
+                                        status_code=response.status_code,
+                                        reason=response.reason,
+                                        params=params,
+                                        data=data,
+                                        files=files))
+                print("attempt {} failed:".format(i+1))
+                print(response.content)
+                time.sleep(2 * attempt)
+            else:
+                break
+            
         if not response.ok:
-            log.info('''{method} {url}: {status_code} {reason}
-            Params: {params}
-            Data: {data}
-            Files: {files}'''.format(method=method,
-                                     url=url,
-                                     status_code=response.status_code,
-                                     reason=response.reason,
-                                     params=params,
-                                     data=data,
-                                     files=files))
-            print(response.content)
             return response.content
-
         # Will probably want to be more robust here, but this should work for now
-        return response.json()
+        else:
+            return response.json()
 
     def get(self, path=None, params=None):
         return self._request(method='GET', path=path, params=params)
