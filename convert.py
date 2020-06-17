@@ -33,19 +33,19 @@ def parse(post_path):
     return front_matter, markdown
 
 
-def convtoconf(markdown, front_matter={}):
+def convtoconf(markdown, front_matter={},no_toc=False):
     if front_matter is None:
         front_matter = {}
 
     author_keys = front_matter.get('author_keys', [])
-    renderer = ConfluenceRenderer(authors=author_keys)
+    renderer = ConfluenceRenderer(authors=author_keys,no_toc=no_toc)
     content_html = mistune.markdown(markdown, renderer=renderer)
     page_html = renderer.layout(content_html)
 
     return page_html, renderer.attachments
 
 
-class ConfluenceRenderer(mistune.Renderer):
+class ConfluenceRenderer(mistune.Renderer,no_toc=False):
     def __init__(self, authors=[]):
         self.attachments = []
         if authors is None:
@@ -89,7 +89,10 @@ class ConfluenceRenderer(mistune.Renderer):
             </ac:structured-macro>''')
         sidebar = column.format(width='30%', content=toc + authors)
         main_content = column.format(width='800px', content=content)
-        return sidebar + main_content
+        if self.no_toc:
+            return main_content
+        else:
+            return sidebar + main_content
 
     def header(self, text, level, raw=None):
         """Processes a Markdown header.

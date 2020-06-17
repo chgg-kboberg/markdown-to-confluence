@@ -142,6 +142,14 @@ def parse_args():
         'Individual files to deploy to Confluence (takes precendence over --git)'
     )
 
+    parser.add_argument(
+        '--no-toc',
+        dest='no_toc',
+        action='store_true',
+        help=
+        'Removes TOC sidebar'
+    )
+
     args = parser.parse_args()
 
     if not args.api_url:
@@ -188,7 +196,7 @@ def deploy_file(post_path, args, confluence):
         front_matter['author_keys'].append(confluence_author['userKey'])
 
     # Normalize the content into whatever format Confluence expects
-    html, attachments = convtoconf(markdown, front_matter=front_matter)
+    html, attachments = convtoconf(markdown, front_matter=front_matter,no_toc=args.no_toc)
 
     static_path = os.path.join(args.git, 'static')
     for i, attachment in enumerate(attachments):
